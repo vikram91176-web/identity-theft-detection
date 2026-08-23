@@ -5,11 +5,15 @@ from pathlib import Path
 import pandas as pd
 import joblib
 
+
 # =========================================================
 # APP
 # =========================================================
 
-app = FastAPI(title="Identity Guard API")
+app = FastAPI(
+    title="Identity Guard API",
+    version="1.0.0"
+)
 
 
 # =========================================================
@@ -18,14 +22,21 @@ app = FastAPI(title="Identity Guard API")
 
 app.add_middleware(
     CORSMiddleware,
+
+    # Exact allowed origins
     allow_origins=[
-        # Local development
+        "http://localhost:5173",
         "http://localhost:5175",
+        "http://127.0.0.1:5173",
         "http://127.0.0.1:5175",
 
         # Vercel production
         "https://identity-theft-detection.vercel.app",
     ],
+
+    # Allow Vercel preview deployment URLs
+    allow_origin_regex=r"https://.*\.vercel\.app",
+
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -42,11 +53,20 @@ MODEL_PATH = BASE_DIR / "identity_theft_random_forest.pkl"
 
 model = None
 
+
 try:
     model = joblib.load(MODEL_PATH)
-    print("✅ Random Forest model loaded")
+
+    print("========================================")
+    print("✅ Random Forest model loaded successfully")
+    print("========================================")
+
 except Exception as e:
-    print("❌ Model loading failed:", e)
+
+    print("========================================")
+    print("❌ Model loading failed")
+    print("Error:", e)
+    print("========================================")
 
 
 # =========================================================
@@ -75,14 +95,17 @@ FEATURES = [
 class Transaction(BaseModel):
 
     step: int
+
     type: str
 
     amount: float
 
     oldbalanceOrg: float
+
     newbalanceOrig: float
 
     oldbalanceDest: float
+
     newbalanceDest: float
 
     isFlaggedFraud: int
@@ -97,7 +120,8 @@ def home():
 
     return {
         "status": "online",
-        "message": "Identity Guard API is running"
+        "message": "Identity Guard API is running",
+        "version": "1.0.0"
     }
 
 
@@ -121,15 +145,20 @@ def health():
 @app.post("/predict")
 def predict(transaction: Transaction):
 
+    # -----------------------------------------------------
+    # CHECK MODEL
+    # -----------------------------------------------------
+
     if model is None:
 
         return {
+            "success": False,
             "error": "Random Forest model could not be loaded."
         }
 
 
     # -----------------------------------------------------
-    # CREATE INPUT
+    # CREATE INPUT ROW
     # -----------------------------------------------------
 
     row = {
@@ -162,7 +191,7 @@ def predict(transaction: Transaction):
     # ONE HOT ENCODING
     # -----------------------------------------------------
 
-    transaction_type = transaction.type.upper()
+    transaction_type = transaction.type.upper().strip()
 
     type_column = f"type_{transaction_type}"
 
@@ -172,7 +201,7 @@ def predict(transaction: Transaction):
 
 
     # -----------------------------------------------------
-    # DATAFRAME
+    # CREATE DATAFRAME
     # -----------------------------------------------------
 
     input_df = pd.DataFrame(
@@ -185,32 +214,51 @@ def predict(transaction: Transaction):
     # PREDICTION
     # -----------------------------------------------------
 
-    prediction = int(
-        model.predict(input_df)[0]
-    )
+    try:
+
+        prediction = int(
+            model.predict(input_df)[0]
+        )
+
+    except Exception as e:
+
+        return {
+            "success": False,
+            "error": f"Prediction failed: {str(e)}"
+        }
 
 
     # -----------------------------------------------------
-    # PROBABILITY
+    # FRAUD PROBABILITY
     # -----------------------------------------------------
 
     if hasattr(model, "predict_proba"):
 
-        probabilities = model.predict_proba(input_df)[0]
+        try:
 
-        classes = list(model.classes_)
+            probabilities = model.predict_proba(
+                input_df
+            )[0]
 
-        if 1 in classes:
+            classes = list(model.classes_)
 
-            fraud_index = classes.index(1)
+            if 1 in classes:
 
-            fraud_probability = float(
-                probabilities[fraud_index]
+                fraud_index = classes.index(1)
+
+                fraud_probability = float(
+                    probabilities[fraud_index]
+                )
+
+            else:
+
+                fraud_probability = 0.0
+
+        except Exception:
+
+            fraud_probability = (
+                1.0 if prediction == 1 else 0.0
             )
-
-        else:
-
-            fraud_probability = 0.0
 
     else:
 
@@ -219,11 +267,15 @@ def predict(transaction: Transaction):
         )
 
 
+    # -----------------------------------------------------
+    # SAFE PROBABILITY
+    # -----------------------------------------------------
+
     safe_probability = 1.0 - fraud_probability
 
 
     # -----------------------------------------------------
-    # RESULT
+    # RESULT + RISK
     # -----------------------------------------------------
 
     if prediction == 1:
