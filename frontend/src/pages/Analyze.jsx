@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 
-const API_URL = "http://127.0.0.1:8000";
+const API_URL = "https://identity-theft-detection.onrender.com";
 
 function Analyze() {
 
