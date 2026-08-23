@@ -19,8 +19,12 @@ app = FastAPI(title="Identity Guard API")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
+        # Local development
         "http://localhost:5175",
         "http://127.0.0.1:5175",
+
+        # Vercel production
+        "https://identity-theft-detection.vercel.app",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -210,7 +214,9 @@ def predict(transaction: Transaction):
 
     else:
 
-        fraud_probability = 1.0 if prediction == 1 else 0.0
+        fraud_probability = (
+            1.0 if prediction == 1 else 0.0
+        )
 
 
     safe_probability = 1.0 - fraud_probability
@@ -230,7 +236,6 @@ def predict(transaction: Transaction):
 
         result = "SAFE"
 
-        # Probability based risk
         if fraud_probability >= 0.50:
 
             risk = "HIGH"
