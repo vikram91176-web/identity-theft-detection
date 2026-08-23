@@ -1,0 +1,168 @@
+/* =========================================
+   GLOBAL RESET
+   ========================================= */
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
+  scroll-behavior: smooth;
+}
+
+body {
+  width: 100%;
+  min-width: 320px;
+  min-height: 100vh;
+
+  margin: 0;
+  padding: 0;
+
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
+
+  background: #050812;
+  color: #f8fafc;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  overflow-x: hidden;
+}
+
+
+/* =========================================
+   ROOT
+   ========================================= */
+
+#root {
+  width: 100%;
+  min-width: 320px;
+  min-height: 100vh;
+
+  margin: 0;
+  padding: 0;
+
+  /* IMPORTANT:
+     Do NOT use max-width here.
+     Do NOT use margin: 0 auto.
+     Do NOT use text-align: center.
+  */
+}
+
+
+/* =========================================
+   DEFAULT ELEMENTS
+   ========================================= */
+
+a {
+  color: inherit;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+  margin-top: 0;
+}
+
+
+/* =========================================
+   REMOVE VITE DEFAULT STYLES
+   ========================================= */
+
+#root {
+  text-align: left;
+}
+
+
+/* =========================================
+   SELECTION
+   ========================================= */
+
+::selection {
+  background: rgba(124, 58, 237, 0.35);
+  color: #ffffff;
+}
+
+
+/* =========================================
+   SCROLLBAR
+   ========================================= */
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #050812;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(
+    180deg,
+    #7c3aed,
+    #06b6d4
+  );
+
+  border-radius: 20px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(
+    180deg,
+    #8b5cf6,
+    #22d3ee
+  );
+}
+
+
+/* =========================================
+   MOBILE
+   ========================================= */
+
+@media (max-width: 768px) {
+
+  html,
+  body,
+  #root {
+    width: 100%;
+    min-width: 320px;
+  }
+
+  body {
+    overflow-x: hidden;
+  }
+}
